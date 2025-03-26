@@ -6,7 +6,11 @@ function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get("token");
 
-  return <div className="App"></div>;
+  return (
+    <div className="App">
+      <ChatWidget token={token} />
+    </div>
+  );
 }
 
 export default App;

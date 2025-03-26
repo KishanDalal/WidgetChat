@@ -9,21 +9,47 @@ function ChatWidget({ token }) {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    console.log("Attempting to connect to Socket.IO server...");
-    socketRef.current = io("http://localhost:5000", { query: { token } });
+    if (token) {
+      // Only connect if token is available
+      console.log("Attempting to connect to Socket.IO server...");
+      socketRef.current = io("http://localhost:5002", { query: { token } });
 
-    socketRef.current.on("message", (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
-    });
+      socketRef.current.on("connect", () => {
+        console.log("Socket.IO connected successfully.");
+      });
 
+      socketRef.current.on("connect_error", (err) => {
+        console.error("Socket.IO connection error:", err);
+      });
+
+      socketRef.current.on("message", (message) => {
+        console.log("message recieved: ", message);
+        setMessages((prevMessages) => [...prevMessages, message]);
+      });
+
+      return () => {
+        if (socketRef.current) {
+          socketRef.current.disconnect();
+          console.log("Socket disconnected");
+        }
+      };
+    }
     return () => {
-      socketRef.current.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        console.log("Socket disconnected");
+      }
     };
   }, [token]);
 
   const sendMessage = () => {
     console.log("Sending message:", newMessage);
-    socketRef.current.emit("sendMessage", newMessage);
+    if (socketRef.current) {
+      socketRef.current.emit("sendMessage", newMessage);
+    } else {
+      console.log("Socket not connected");
+    }
+
     setNewMessage("");
   };
 
